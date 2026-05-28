@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Flight Search — SkyRoute{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>Available Flights</h1>
+    {% if q.origin or q.destination %}
+    <p class="page-sub">
+      {{ q.origin or 'Any' }} → {{ q.destination or 'Any' }}
+      {% if q.date %} · {{ q.date }}{% endif %}
+      {% if q.flight_class %} · {{ q.flight_class }}{% endif %}
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container search-layout">
+
+  <!-- Sidebar filter -->
+  <aside class="filter-sidebar">
+    <h3>Refine Search</h3>
+    <form method="GET" action="{{ url_for('search') }}">
+      <div class="filter-group">
+        <label>From</label>
+        <select name="origin">
+          <option value="">Any</option>
+          {% for a in airports %}
+          <option value="{{ a.city }}" {{ 'selected' if q.origin == a.city }}>{{ a.city }} ({{ a.airport_code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>To</label>
+        <select name="destination">
+          <option value="">Any</option>
+          {% for a in airports %}
+          <option value="{{ a.city }}" {{ 'selected' if q.destination == a.city }}>{{ a.city }} ({{ a.airport_code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Date</label>
+        <input type="date" name="date" value="{{ q.date }}"/>
+      </div>
+      <div class="filter-group">
+        <label>Class</label>
+        <select name="flight_class">
+          <option value="">Any</option>
+          {% for cls in ['Economy','Business','First'] %}
+          <option {{ 'selected' if q.flight_class == cls }}>{{ cls }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-primary w-full">Apply Filters</button>
+    </form>
+  </aside>
+
+  <!-- Results -->
+  <section class="results-panel">
+    <div class="results-header">
+      <span class="result-count">{{ flights|length }} flight(s) found</span>
+      <a href="{{ url_for('deals') }}" class="deals-link">🏷 View coupon deals</a>
+    </div>
+
+    {% if flights %}
+      {% for f in flights %}
+      <div class="result-card">
+        <div class="rc-left">
+          <div class="rc-route">
+            <div class="rc-point">
+              <span class="rc-time">{{ f.departure_time.strftime('%H:%M') }}</span>
+              <span class="rc-code">{{ f.origin_code }}</span>
+              <span class="rc-city">{{ f.origin_city }}</span>
+            </div>
+            <div class="rc-line">
+              <span class="rc-dur">{{ f.duration }}</span>
+              <div class="rc-track"><span class="rc-dot"></span><div class="rc-dash"></div><span class="rc-plane-icon">✈</span></div>
+              <span class="rc-num">{{ f.flight_number }}</span>
+            </div>
+            <div class="rc-point rc-point-right">
+              <span class="rc-time">{{ f.arrival_time.strftime('%H:%M') }}</span>
+              <span class="rc-code">{{ f.dest_code }}</span>
+              <span class="rc-city">{{ f.dest_city }}</span>
+            </div>
+          </div>
+          <div class="rc-tags">
+            <span class="badge badge-{{ f.flight_class.lower() }}">{{ f.flight_class }}</span>
+            <span class="badge badge-plane">{{ f.aircraft_model }}</span>
+            <span class="badge {{ 'badge-low' if f.available_seats < 10 else 'badge-ok' }}">
+              {{ f.available_seats }} seats left
+            </span>
+          </div>
+        </div>
+        <div class="rc-right">
+          <div class="rc-price">${{ "%.2f"|format(f.base_price) }}</div>
+          <div class="rc-price-label">per person</div>
+          <a href="{{ url_for('flight_detail', flight_id=f.flight_id) }}" class="btn-book-now">Book Now</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🛫</div>
+        <h3>No flights found</h3>
+        <p>Try adjusting your search filters or choose a different date.</p>
+        <a href="{{ url_for('index') }}" class="btn-primary">New Search</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

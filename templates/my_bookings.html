@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}My Bookings — SkyRoute{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>My Bookings</h1>
+    <p class="page-sub">Enter your email to view and manage your bookings</p>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Email lookup form -->
+  <form method="GET" action="{{ url_for('my_bookings') }}" class="lookup-form">
+    <input type="email" name="email" value="{{ email }}" placeholder="Enter your email address" required/>
+    <button type="submit" class="btn-primary">Find Bookings →</button>
+  </form>
+
+  {% if passenger %}
+  <div class="passenger-greeting">
+    <span>👤</span>
+    <div>
+      <strong>{{ passenger.first_name }} {{ passenger.last_name }}</strong>
+      <span>{{ passenger.email }}</span>
+    </div>
+  </div>
+
+  {% if bookings %}
+  <div class="bookings-list">
+    {% for b in bookings %}
+    <div class="booking-item {{ 'booking-cancelled' if b.status == 'CANCELLED' }}">
+      <div class="bi-header">
+        <div class="bi-route">
+          <span class="bi-code">{{ b.origin_code }}</span>
+          <span class="bi-arrow">✈</span>
+          <span class="bi-code">{{ b.dest_code }}</span>
+        </div>
+        <span class="bi-status status-{{ b.status.lower() }}">{{ b.status }}</span>
+      </div>
+
+      <div class="bi-details">
+        <div class="bi-detail"><span>Flight</span><strong>{{ b.flight_number }}</strong></div>
+        <div class="bi-detail"><span>Class</span><strong>{{ b.flight_class }}</strong></div>
+        <div class="bi-detail"><span>Seat</span><strong>{{ b.seat_number or '—' }}</strong></div>
+        <div class="bi-detail"><span>Departure</span><strong>{{ b.departure_time.strftime('%d %b %Y %H:%M') }}</strong></div>
+        <div class="bi-detail"><span>Route</span><strong>{{ b.origin_city }} → {{ b.dest_city }}</strong></div>
+        <div class="bi-detail"><span>Booked On</span><strong>{{ b.booking_date.strftime('%d %b %Y') }}</strong></div>
+        {% if b.coupon_code %}
+        <div class="bi-detail"><span>Coupon</span><strong class="text-ok">{{ b.coupon_code }}</strong></div>
+        {% endif %}
+        <div class="bi-detail"><span>Total Paid</span><strong>${{ "%.2f"|format(b.total_price) }}</strong></div>
+        {% if b.status == 'CANCELLED' and b.refund_amount %}
+        <div class="bi-detail"><span>Refund</span><strong class="text-ok">${{ "%.2f"|format(b.refund_amount) }} ({{ b.refund_status }})</strong></div>
+        {% endif %}
+      </div>
+
+      <div class="bi-actions">
+        <a href="{{ url_for('booking_confirmation', booking_id=b.booking_id) }}" class="btn-sm btn-outline">View Ticket</a>
+        <a href="{{ url_for('transactions', booking_id=b.booking_id, email=email) }}" class="btn-sm btn-outline">Transactions</a>
+
+        {% if b.status == 'CONFIRMED' %}
+        <button class="btn-sm btn-danger" onclick="openCancelModal({{ b.booking_id }})">Cancel</button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <h3>No bookings found</h3>
+    <p>You haven't made any bookings with this email yet.</p>
+    <a href="{{ url_for('index') }}" class="btn-primary">Book a Flight</a>
+  </div>
+  {% endif %}
+
+  {% endif %}
+</div>
+
+<!-- Cancel modal -->
+<div class="modal-overlay hidden" id="cancelModal">
+  <div class="modal">
+    <h3>Cancel Booking</h3>
+    <p>Are you sure? You'll receive an <strong>85% refund</strong> within 5–7 business days.</p>
+    <form method="POST" id="cancelForm">
+      <input type="hidden" name="email" value="{{ email }}"/>
+      <div class="form-field">
+        <label>Reason (optional)</label>
+        <input type="text" name="reason" placeholder="e.g. Change of plans"/>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn-danger">Yes, Cancel Booking</button>
+        <button type="button" class="btn-outline" onclick="closeCancelModal()">Keep Booking</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openCancelModal(bookingId) {
+  document.getElementById('cancelForm').action = `/cancel/${bookingId}`;
+  document.getElementById('cancelModal').classList.remove('hidden');
+}
+function closeCancelModal() {
+  document.getElementById('cancelModal').classList.add('hidden');
+}
+document.getElementById('cancelModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCancelModal();
+});
+</script>
+{% endblock %}

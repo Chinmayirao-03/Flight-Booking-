@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Deals & Coupons — SkyRoute{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>✦ Deals &amp; Coupons</h1>
+    <p class="page-sub">Apply these codes at checkout to save on your next flight</p>
+  </div>
+</div>
+<div class="container">
+  <div class="deals-grid">
+    {% for c in coupons %}
+    <div class="deal-card">
+      <div class="deal-badge">
+        {% if c.discount_type == 'PERCENTAGE' %}
+        <span class="deal-pct">{{ c.discount_value|int }}%<br><small>OFF</small></span>
+        {% else %}
+        <span class="deal-pct">${{ c.discount_value|int }}<br><small>OFF</small></span>
+        {% endif %}
+      </div>
+      <div class="deal-info">
+        <div class="deal-code">{{ c.coupon_code }}</div>
+        <div class="deal-desc">{{ c.description }}</div>
+        <div class="deal-meta">
+          Min. booking: ${{ "%.0f"|format(c.min_price) }} &nbsp;·&nbsp;
+          Valid until: {{ c.valid_until }}
+        </div>
+      </div>
+      <button class="btn-copy" onclick="copyCode('{{ c.coupon_code }}', this)">Copy</button>
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="empty-icon">🏷</div><h3>No active deals right now.</h3></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyCode(code, btn) {
+  navigator.clipboard.writeText(code);
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Booking Confirmed — SkyRoute{% endblock %}
+
+{% block content %}
+<div class="page-header page-header-success">
+  <div class="container">
+    <div class="confirm-badge">✓</div>
+    <h1>Booking Confirmed!</h1>
+    <p class="page-sub">Your e-ticket is ready. Booking ID: <strong>#{{ booking.booking_id }}</strong></p>
+  </div>
+</div>
+
+<div class="container ticket-container">
+  <div class="ticket">
+    <!-- Ticket top -->
+    <div class="ticket-top">
+      <div class="ticket-airline">✦ SkyRoute</div>
+      <div class="ticket-class badge-{{ booking.flight_class.lower() }}">{{ booking.flight_class }}</div>
+    </div>
+
+    <!-- Route -->
+    <div class="ticket-route">
+      <div class="ticket-point">
+        <div class="ticket-code">{{ booking.origin_code }}</div>
+        <div class="ticket-city">{{ booking.origin_city }}</div>
+        <div class="ticket-time">{{ booking.departure_time.strftime('%H:%M') }}</div>
+        <div class="ticket-date">{{ booking.departure_time.strftime('%d %b %Y') }}</div>
+      </div>
+      <div class="ticket-mid">
+        <div class="ticket-plane">✈</div>
+        <div class="ticket-flight-num">{{ booking.flight_number }}</div>
+      </div>
+      <div class="ticket-point ticket-point-r">
+        <div class="ticket-code">{{ booking.dest_code }}</div>
+        <div class="ticket-city">{{ booking.dest_city }}</div>
+        <div class="ticket-time">{{ booking.arrival_time.strftime('%H:%M') }}</div>
+        <div class="ticket-date">{{ booking.arrival_time.strftime('%d %b %Y') }}</div>
+      </div>
+    </div>
+
+    <!-- Perforated divider -->
+    <div class="ticket-divider"><span></span></div>
+
+    <!-- Passenger info -->
+    <div class="ticket-info-grid">
+      <div class="ti">
+        <span class="ti-label">Passenger</span>
+        <span class="ti-val">{{ booking.first_name }} {{ booking.last_name }}</span>
+      </div>
+      <div class="ti">
+        <span class="ti-label">Passport</span>
+        <span class="ti-val">{{ booking.passport_number }}</span>
+      </div>
+      <div class="ti">
+        <span class="ti-label">Seat</span>
+        <span class="ti-val seat-num">{{ booking.seat_number }}</span>
+      </div>
+      <div class="ti">
+        <span class="ti-label">Booking ID</span>
+        <span class="ti-val">#{{ booking.booking_id }}</span>
+      </div>
+      <div class="ti">
+        <span class="ti-label">Base Fare</span>
+        <span class="ti-val">${{ "%.2f"|format(booking.base_price) }}</span>
+      </div>
+      {% if booking.discount_amount > 0 %}
+      <div class="ti">
+        <span class="ti-label">Discount ({{ booking.coupon_code }})</span>
+        <span class="ti-val text-ok">-${{ "%.2f"|format(booking.discount_amount) }}</span>
+      </div>
+      {% endif %}
+      <div class="ti">
+        <span class="ti-label">Total Paid</span>
+        <span class="ti-val ti-total">${{ "%.2f"|format(booking.total_price) }}</span>
+      </div>
+      <div class="ti">
+        <span class="ti-label">Payment</span>
+        <span class="ti-val">{{ (booking.payment_method or 'Card').replace('_',' ').title() }}</span>
+      </div>
+      <div class="ti">
+        <span class="ti-label">Ref No.</span>
+        <span class="ti-val">{{ booking.reference_number or '—' }}</span>
+      </div>
+      <div class="ti">
+        <span class="ti-label">Status</span>
+        <span class="ti-val badge-confirmed">✓ CONFIRMED</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="confirm-actions">
+    <a href="{{ url_for('my_bookings', email=booking.email) }}" class="btn-primary">View My Bookings</a>
+    <a href="{{ url_for('transactions', booking_id=booking.booking_id, email=booking.email) }}" class="btn-outline">View Transaction</a>
+    <a href="{{ url_for('index') }}" class="btn-outline">Book Another Flight</a>
+  </div>
+</div>
+{% endblock %}

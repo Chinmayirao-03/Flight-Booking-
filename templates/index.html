@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}SkyRoute — Book Flights{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="grid-lines"></div>
+  </div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">✦ Your Journey Starts Here</p>
+    <h1 class="hero-title">Fly Anywhere.<br>Pay Less.</h1>
+    <p class="hero-sub">Search hundreds of routes. Instant booking. Real-time availability.</p>
+
+    <!-- ── SEARCH FORM ──────────────────────────────────── -->
+    <form action="{{ url_for('search') }}" method="GET" class="search-card" id="searchForm">
+      <div class="search-tabs">
+        <button type="button" class="tab active">One Way</button>
+        <button type="button" class="tab">Round Trip</button>
+      </div>
+
+      <div class="search-fields">
+        <div class="field-group">
+          <label>From</label>
+          <select name="origin" required>
+            <option value="">Select origin</option>
+            {% for a in airports %}
+            <option value="{{ a.city }}">{{ a.city }} ({{ a.airport_code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="button" class="swap-btn" id="swapBtn" title="Swap">⇄</button>
+
+        <div class="field-group">
+          <label>To</label>
+          <select name="destination" required>
+            <option value="">Select destination</option>
+            {% for a in airports %}
+            <option value="{{ a.city }}">{{ a.city }} ({{ a.airport_code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Date</label>
+          <input type="date" name="date" min="{{ today }}" />
+        </div>
+
+        <div class="field-group">
+          <label>Class</label>
+          <select name="flight_class">
+            <option value="">Any</option>
+            <option>Economy</option>
+            <option>Business</option>
+            <option>First</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-search">Search Flights →</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ── STATS BAR ─────────────────────────────────────────── -->
+<div class="stats-bar">
+  <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Routes</span></div>
+  <div class="stat"><span class="stat-num">10</span><span class="stat-label">Airports</span></div>
+  <div class="stat"><span class="stat-num">5</span><span class="stat-label">Coupon Deals</span></div>
+  <div class="stat"><span class="stat-num">24/7</span><span class="stat-label">Support</span></div>
+</div>
+
+<!-- ── POPULAR FLIGHTS ───────────────────────────────────── -->
+<section class="section-popular">
+  <div class="container">
+    <h2 class="section-title">Popular Routes</h2>
+    <p class="section-sub">Hand-picked routes at unbeatable prices</p>
+    <div class="flights-grid" id="popularFlights">
+      <div class="loading-card">Loading flights…</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DEALS TEASER ──────────────────────────────────────── -->
+<section class="section-deals">
+  <div class="container">
+    <div class="deals-banner">
+      <div class="deals-text">
+        <h3>🏷 Use code <strong>SUMMER20</strong> for 20% off!</h3>
+        <p>Valid on all Economy flights until August 31, 2026</p>
+      </div>
+      <a href="{{ url_for('deals') }}" class="btn-outline">View All Deals →</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const today = new Date().toISOString().split('T')[0];
+document.querySelector('input[type=date]').min = today;
+
+// Swap origin/destination
+document.getElementById('swapBtn').addEventListener('click', () => {
+  const selects = document.querySelectorAll('#searchForm select');
+  const v = selects[0].value;
+  selects[0].value = selects[1].value;
+  selects[1].value = v;
+});
+
+// Load popular flights via API
+fetch('/api/flights')
+  .then(r => r.json())
+  .then(flights => {
+    const grid = document.getElementById('popularFlights');
+    if (!flights.length) { grid.innerHTML = '<p class="no-results">No flights available.</p>'; return; }
+    grid.innerHTML = flights.slice(0, 6).map(f => `
+      <a href="/flight/${f.flight_id}" class="flight-card">
+        <div class="fc-route">
+          <span class="fc-code">${f.origin_code}</span>
+          <span class="fc-arrow">✈</span>
+          <span class="fc-code">${f.dest_code}</span>
+        </div>
+        <div class="fc-cities">${f.origin_city} → ${f.dest_city}</div>
+        <div class="fc-meta">
+          <span class="fc-class badge-${f.flight_class.toLowerCase()}">${f.flight_class}</span>
+          <span class="fc-seats">${f.available_seats} seats left</span>
+        </div>
+        <div class="fc-footer">
+          <span class="fc-dep">${f.departure_time.split(' ')[1]}</span>
+          <span class="fc-dur">${f.duration}</span>
+          <span class="fc-price">$${parseFloat(f.base_price).toFixed(2)}</span>
+        </div>
+      </a>
+    `).join('');
+  });
+</script>
+{% endblock %}

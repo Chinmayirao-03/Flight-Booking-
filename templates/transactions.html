@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Transactions — SkyRoute{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <a href="{{ url_for('my_bookings', email=email) }}" class="back-link">← Back to My Bookings</a>
+    <h1>Transaction History</h1>
+    <p class="page-sub">Booking #{{ booking_id }}</p>
+  </div>
+</div>
+
+<div class="container">
+  {% if txns %}
+  <div class="txn-table-wrap">
+    <table class="txn-table">
+      <thead>
+        <tr>
+          <th>Txn ID</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Method</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Reference</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in txns %}
+        <tr>
+          <td>#{{ t.transaction_id }}</td>
+          <td>{{ t.transaction_date.strftime('%d %b %Y %H:%M') }}</td>
+          <td>
+            <span class="txn-type txn-{{ t.transaction_type.lower() }}">
+              {{ '↑' if t.transaction_type == 'PAYMENT' else '↓' }}
+              {{ t.transaction_type.replace('_',' ') }}
+            </span>
+          </td>
+          <td>{{ t.payment_method.replace('_',' ').title() }}</td>
+          <td class="{{ 'text-danger' if t.transaction_type == 'PAYMENT' else 'text-ok' }}">
+            {{ '-' if t.transaction_type == 'PAYMENT' else '+' }}${{ "%.2f"|format(t.amount) }}
+          </td>
+          <td><span class="status-badge status-{{ t.status.lower() }}">{{ t.status }}</span></td>
+          <td class="ref-num">{{ t.reference_number }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <h3>No transactions found.</h3>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
