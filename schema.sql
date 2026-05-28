@@ -215,7 +215,9 @@ INSERT INTO Flight (flight_number, origin_airport_id, destination_airport_id, ai
 ('SK606', 7, 8, 3, '2026-07-15 06:00:00', '2026-07-15 08:10:00',   89.99, 80, 'Economy'),
 ('SK707', 8, 3, 5, '2026-07-16 22:00:00', '2026-07-17 10:00:00',  420.00, 35, 'Economy'),
 ('SK808', 9, 1, 2, '2026-07-17 13:00:00', '2026-07-17 15:30:00',  680.00, 15, 'First'),
-('SK909', 6, 10, 1,'2026-07-18 09:00:00', '2026-07-19 06:00:00',  950.00, 20, 'Business');
+('SK909', 6, 10, 1,'2026-07-18 09:00:00', '2026-07-19 06:00:00',  950.00, 20, 'Business'),
+('SK111', 10, 7, 4, '2026-07-19 22:00:00', '2026-07-20 08:00:00',  320.00, 50, 'Economy'),
+('SK222', 6, 9, 2, '2026-07-20 12:00:00', '2026-07-20 20:30:00',  450.00, 40, 'Economy');
 
 INSERT INTO Coupon (coupon_code, description, discount_type, discount_value, min_price, max_uses, valid_from, valid_until) VALUES
 ('WELCOME10',  '10% off for new users',         'PERCENTAGE', 10.00,  100.00, 500, '2026-01-01', '2026-12-31'),
